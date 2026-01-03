@@ -17,6 +17,7 @@ const generateToken = (user) => {
 }
 const isProd = process.env.NODE_ENV === "production";
 export const login = async (req, res, next) => {
+    console.log("login called")
     const { email, password } = req.body;
     if (!email || !password) return next(new ExpressError(400, "Please provide all the required fields"))
     // console.log("all details done", email, password)

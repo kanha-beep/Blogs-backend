@@ -23,6 +23,7 @@ export const editComments = async (req, res, next) => {
     res.json(comments)
 }
 export const deleteComments = async (req, res, next) => {
+    console.log("delete called")
     const { id, commentId } = req.params
     const comments = await Comment.findByIdAndDelete(commentId)
     if (!comments) return next(new ExpressError(404, "No comment found"))
