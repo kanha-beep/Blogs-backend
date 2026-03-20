@@ -1,5 +1,6 @@
 import ExpressError from "../middlewares/ExpressError.js"
 import { Blog } from "../models/BlogsSchema.js"
+import cloudinary from "../middlewares/cloudinary.js"
 export const recentBlogs = async (req, res, next) => {
     const blog = await Blog.find({})
     const limit = req.query.limit || 3
@@ -24,12 +25,25 @@ export const allBlogs = async (req, res, next) => {
     if (!blogs) return next(new ExpressError(404, "No blogs found"))
     res.json({ blogs, totalBlogs, page })
 }
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: "uploads" },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+
+        stream.end(buffer);
+    });
+};
 export const newBlogs = async (req, res, next) => {
-    // console.log("new owner: ", req.user)
+    const result = await uploadToCloudinary(req.file.buffer)
     const { title, content, author, category } = req.body
-    if (!title || !content || !author) return next(new ExpressError(400, "All fields are required"))
-    const newBlog = await Blog.create({ title, content, author, image: req.file.filename, category, user: req.user._id })
-    console.log("new blog: ", newBlog)
+
+    // if (!title || !content || !author) return next(new ExpressError(400, "All fields are required"))
+    const newBlog = await Blog.create({ title, content, author, url: result.secure_url, category, user: req.user._id })
     res.json({ message: "New Blog Created Successfully", newBlog })
 }
 export const singleBlogs = async (req, res, next) => {

@@ -8,6 +8,7 @@ import AuthRoutes from "./routes/AuthRoutes.js"
 import BlogsRoutes from "./routes/BlogsRoutes.js"
 import CommentsRoutes from "./routes/CommentsRoutes.js"
 import { connectDB } from "./utils/db.js"
+
 const app = express()
 app.set("trust proxy", 1)
 const allowedOrigins = process.env.CLIENT_URL.split(",")
