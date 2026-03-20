@@ -41,14 +41,15 @@ const uploadToCloudinary = (buffer) => {
 export const newBlogs = async (req, res, next) => {
     const result = await uploadToCloudinary(req.file.buffer)
     const { title, content, author, category } = req.body
+    const normalizedCategory = Array.isArray(category) ? category : [category]
 
     // if (!title || !content || !author) return next(new ExpressError(400, "All fields are required"))
-    const newBlog = await Blog.create({ title, content, author, url: result.secure_url, category, user: req.user._id })
+    const newBlog = await Blog.create({ title, content, author, url: result.secure_url, category: normalizedCategory, user: req.user._id })
     res.json({ message: "New Blog Created Successfully", newBlog })
 }
 export const singleBlogs = async (req, res, next) => {
     const { id } = req.params
-    const blog = await Blog.findById(id).populate("comments").populate({ path: "user", select: "name" }).populate("user")
+    console.log("1. start: ", id)
     const blogs = await Blog.findById(id)
         .populate({
             path: "comments",           // first populate comments array
@@ -58,11 +59,12 @@ export const singleBlogs = async (req, res, next) => {
             }
         })
         .populate("user", "name");
-    if (!blog) return next(new ExpressError(404, "No blog found"))
+    if (!blogs) return next(new ExpressError(404, "No blog found"))
+    console.log("single: ", blogs)
     res.json(blogs)
 }
 export const editBlogs = async (req, res, next) => {
-    // console.log("req: ", req.params)
+    console.log("req: ", req.params)
     const { id } = req.params
     const blog = await Blog.findById(id)
     console.log("blog to edit: ", blog)
@@ -72,10 +74,11 @@ export const editBlogs = async (req, res, next) => {
 export const updateBlogs = async (req, res, next) => {
     const { id } = req.params
     const { title, content, author, category } = req.body
+    const normalizedCategory = Array.isArray(category) ? category : [category]
     const existingBlog = await Blog.findById(id).populate("comments")
     const image = req.file ? req.file.filename : existingBlog.image
-    console.log("title", title, "content", content, "author", author, "category", category, "image", image)
-    const blog = await Blog.findByIdAndUpdate(id, { title, content, author, category, image }, { new: true })
+    console.log("title", title, "content", content, "author", author, "category", normalizedCategory, "image", image)
+    const blog = await Blog.findByIdAndUpdate(id, { title, content, author, category: normalizedCategory, image }, { new: true })
     if (!blog) return next(new ExpressError(404, "No blog found"))
     console.log("updated blog: ", blog)
     res.json({ message: "Updated Successfully", blog })

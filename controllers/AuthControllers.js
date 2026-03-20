@@ -29,7 +29,7 @@ export const login = async (req, res, next) => {
     // console.log("password matched")
     const token = generateToken(user)
     console.log("token generated: ", token)
-    res.cookie("newToken", token, { httpOnly: true, secure: isProd, sameSite: isProd ? "none" : "lax", path: "/" })
+    res.cookie("token", token, { httpOnly: true, secure: isProd, sameSite: isProd ? "none" : "lax", path: "/" })
     res.status(200).json({ message: "User created successfully", user: { _id: user._id, name: user.name, email: user.email }, token })
 }
 export const logout = async (req, res, next) => {
