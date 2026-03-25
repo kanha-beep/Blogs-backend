@@ -1,6 +1,6 @@
 import express from "express"
 // /api/blogs
-import uploads from "../middlewares/Multer.js"
+import uploads from "../middlewares/multer.js"
 const router = express.Router()
 import { VerifyAuth } from "../middlewares/VerifyAuth.js"
 import { WrapAsync } from "../middlewares/WrapAsync.js"
