@@ -25,6 +25,19 @@ export const allBlogs = async (req, res, next) => {
     if (!blogs) return next(new ExpressError(404, "No blogs found"))
     res.json({ blogs, totalBlogs, page })
 }
+export const myBlogs = async (req, res, next) => {
+    const limit = parseInt(req.query.limit) || 100
+    const page = parseInt(req.query.page) || 1
+    const skip = (page - 1) * limit
+    const filter = { user: req.user._id }
+    const sortOptions = { createdAt: -1 }
+
+    const blogs = await Blog.find(filter).sort(sortOptions).skip(skip).limit(limit).populate("comments")
+    const totalBlogs = await Blog.countDocuments(filter)
+
+    if (!blogs) return next(new ExpressError(404, "No blogs found"))
+    res.json({ blogs, totalBlogs, page })
+}
 const uploadToCloudinary = (buffer) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(

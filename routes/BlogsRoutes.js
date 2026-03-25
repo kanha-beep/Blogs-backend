@@ -4,9 +4,10 @@ import uploads from "../middlewares/multer.js"
 const router = express.Router()
 import { VerifyAuth } from "../middlewares/VerifyAuth.js"
 import { WrapAsync } from "../middlewares/WrapAsync.js"
-import { newBlogs, allBlogs, recentBlogs, singleBlogs, editBlogs, deleteBlogs, updateBlogs } from "../controllers/BlogsController.js"
+import { newBlogs, allBlogs, myBlogs, recentBlogs, singleBlogs, editBlogs, deleteBlogs, updateBlogs } from "../controllers/BlogsController.js"
 import { isOwner } from "../middlewares/IsOwner.js"
 router.get("/all", WrapAsync(allBlogs))
+router.get("/mine", VerifyAuth, WrapAsync(myBlogs))
 router.get("/recent", WrapAsync(recentBlogs))
 router.post("/new", VerifyAuth, uploads.single("image"), WrapAsync(newBlogs))
 router.get("/:id/comments", WrapAsync(singleBlogs))
