@@ -1,6 +1,6 @@
 import ExpressError from "../middlewares/ExpressError.js"
 import { Blog } from "../models/BlogsSchema.js"
-import cloudinary from "../middlewares/cloudinary.js"
+import cloudinary from "../middlewares/Cloudinary.js"
 export const recentBlogs = async (req, res, next) => {
     const blog = await Blog.find({})
     const limit = req.query.limit || 3
