@@ -1,6 +1,13 @@
 import ExpressError from "../middlewares/ExpressError.js"
 import { User } from "../models/AuthSchema.js"
 import jwt from "jsonwebtoken";
+const isProd = process.env.NODE_ENV === "production";
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+}
 export const register = async (req, res, next) => {
     const { name, email, password } = req.body;
     if (!email || !password || !name) return next(new ExpressError(404, "Please provide all the required fields"))
@@ -15,7 +22,6 @@ export const register = async (req, res, next) => {
 const generateToken = (user) => {
     return jwt.sign({ _id: user._id, name: user.name }, process.env.JWT_KEY || "your_jwt_secret", { expiresIn: "30d" })
 }
-const isProd = process.env.NODE_ENV === "production";
 export const login = async (req, res, next) => {
     console.log("login called")
     const { email, password } = req.body;
@@ -29,11 +35,11 @@ export const login = async (req, res, next) => {
     // console.log("password matched")
     const token = generateToken(user)
     console.log("token generated: ", token)
-    res.cookie("token", token, { httpOnly: true, secure: isProd, sameSite: isProd ? "none" : "lax", path: "/" })
-    res.status(200).json({ message: "User created successfully", user: { _id: user._id, name: user.name, email: user.email }, token })
+    res.cookie("token", token, cookieOptions)
+    res.status(200).json({ message: "User logged in successfully", user: { _id: user._id, name: user.name, email: user.email } })
 }
 export const logout = async (req, res, next) => {
-    res.clearCookie("newToken")
+    res.clearCookie("token", cookieOptions)
     res.status(200).json({ message: "User logged out successfully" })
 }
 export const currentUser = async (req, res, next) => {
