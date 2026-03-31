@@ -2,7 +2,11 @@ import jwt from 'jsonwebtoken'
 import ExpressError  from '../middlewares/ExpressError.js';
 export const VerifyAuth = async (req, res, next) => {
     try {
-        const token = req.cookies?.token
+        const authHeader = req.headers.authorization || req.headers.Authorization;
+        const bearerToken = typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+            ? authHeader.slice(7).trim()
+            : null;
+        const token = bearerToken || req.cookies?.token
         console.log("1.got token: ", token)
         if (!token) return next(new ExpressError(401,"Authorization header missing"));
         const decoded = jwt.verify(token, process.env.JWT_KEY || "your_jwt_secret")

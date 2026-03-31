@@ -36,7 +36,7 @@ export const login = async (req, res, next) => {
     const token = generateToken(user)
     console.log("token generated: ", token)
     res.cookie("token", token, cookieOptions)
-    res.status(200).json({ message: "User logged in successfully", user: { _id: user._id, name: user.name, email: user.email } })
+    res.status(200).json({ message: "User logged in successfully", user: { _id: user._id, name: user.name, email: user.email }, token })
 }
 export const logout = async (req, res, next) => {
     res.clearCookie("token", cookieOptions)
