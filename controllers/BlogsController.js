@@ -65,13 +65,17 @@ export const singleBlogs = async (req, res, next) => {
     console.log("1. start: ", id)
     const blogs = await Blog.findById(id)
         .populate({
-            path: "comments",           // first populate comments array
+            path: "comments",
             populate: {
-                path: "user",             // then populate the user field inside each comment
-                select: "name"            // only select the name field from User
+                path: "user",
+                select: "name"
             }
         })
         .populate("user", "name");
+    await Blog.populate(blogs, {
+        path: "comments.replies.user",
+        select: "name"
+    });
     if (!blogs) return next(new ExpressError(404, "No blog found"))
     console.log("single: ", blogs)
     res.json(blogs)

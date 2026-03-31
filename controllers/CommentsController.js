@@ -15,6 +15,25 @@ export const writeComments = async (req, res, next) => {
     if (!blog) return next(new ExpressError(404, "No blog found"))
     res.json(blog)
 }
+export const addReply = async (req, res, next) => {
+    const { commentId } = req.params
+    const { content } = req.body
+
+    if (!content?.trim()) return next(new ExpressError(400, "Reply content is required"))
+
+    const comment = await Comment.findById(commentId)
+    if (!comment) return next(new ExpressError(404, "No comment found"))
+
+    comment.replies.push({
+        content: content.trim(),
+        user: req?.user?._id,
+    })
+
+    await comment.save()
+    await comment.populate("replies.user", "name")
+
+    res.json(comment)
+}
 export const editComments = async (req, res, next) => {
     const { id, commentId } = req.params
     const { content, rating } = req.body
