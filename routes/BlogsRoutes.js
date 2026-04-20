@@ -13,6 +13,6 @@ router.post("/new", VerifyAuth, uploads.single("image"), WrapAsync(newBlogs))
 router.post("/import-news", VerifyAuth, WrapAsync(importBlogsFromNews))
 router.get("/:id/comments", WrapAsync(singleBlogs))
 router.get("/:id/edit", VerifyAuth,isOwner, WrapAsync(editBlogs))
-router.patch("/:id/edit", VerifyAuth, uploads.single("image"), WrapAsync(updateBlogs))
-router.delete("/:id/delete", VerifyAuth, WrapAsync(deleteBlogs))
+router.patch("/:id/edit", VerifyAuth, isOwner, uploads.single("image"), WrapAsync(updateBlogs))
+router.delete("/:id/delete", VerifyAuth, isOwner, WrapAsync(deleteBlogs))
 export default router;
