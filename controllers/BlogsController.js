@@ -1,4 +1,4 @@
-import ExpressError from "../middlewares/ExpressError.js"
+﻿import ExpressError from "../middlewares/ExpressError.js"
 import { Blog } from "../models/BlogsSchema.js"
 import { News } from "../models/NewsSchema.js"
 import cloudinary from "../middlewares/cloudinary.js"
@@ -53,7 +53,7 @@ const uploadToCloudinary = (buffer) => {
     });
 };
 export const newBlogs = async (req, res, next) => {
-    const { title, content, author, category } = req.body
+    const { title, content, author, category, sourceUrl } = req.body
     const normalizedCategory = Array.isArray(category)
         ? category.filter(Boolean)
         : [category].filter(Boolean)
@@ -63,14 +63,24 @@ export const newBlogs = async (req, res, next) => {
     }
 
     const result = req.file ? await uploadToCloudinary(req.file.buffer) : null
+    const trimmedSourceUrl = sourceUrl?.trim() || ""
     const newBlog = await Blog.create({
         title: title.trim(),
         content: content.trim(),
         author: author.trim(),
-        url: result?.secure_url,
+        url: result?.secure_url || "",
+        imageUrl: result?.secure_url || "",
+        sourceUrl: trimmedSourceUrl,
+        sourceTitle: title.trim(),
         category: normalizedCategory,
         user: req.user._id
     })
+    if (trimmedSourceUrl) {
+        await News.updateOne(
+            { $or: [{ link: trimmedSourceUrl }, { title: title.trim() }] },
+            { $set: { blogId: newBlog._id } }
+        )
+    }
     res.json({ message: "New Blog Created Successfully", newBlog })
 }
 export const importBlogsFromNews = async (req, res, next) => {
@@ -139,6 +149,7 @@ export const importBlogsFromNews = async (req, res, next) => {
             category: normalizedCategory,
             user: req.user._id,
             url: article.urlToImage || article.image_url || "",
+            imageUrl: article.urlToImage || article.image_url || "",
             sourceTitle,
             sourceDescription: article.description || "",
             sourceUrl: article.url || article.link || "",
@@ -190,7 +201,7 @@ export const editBlogs = async (req, res, next) => {
 }
 export const updateBlogs = async (req, res, next) => {
     const { id } = req.params
-    const { title, content, author, category } = req.body
+    const { title, content, author, category, sourceUrl } = req.body
     const normalizedCategory = Array.isArray(category)
         ? category.filter(Boolean)
         : [category].filter(Boolean)
@@ -205,6 +216,7 @@ export const updateBlogs = async (req, res, next) => {
     }
 
     const uploadedImage = req.file ? await uploadToCloudinary(req.file.buffer) : null
+    const nextSourceUrl = sourceUrl?.trim() || existingBlog.sourceUrl || ""
     const blog = await Blog.findByIdAndUpdate(
         id,
         {
@@ -213,10 +225,19 @@ export const updateBlogs = async (req, res, next) => {
             author: author.trim(),
             category: normalizedCategory,
             url: uploadedImage?.secure_url || existingBlog.url || "",
+            imageUrl: uploadedImage?.secure_url || existingBlog.imageUrl || existingBlog.url || "",
+            sourceUrl: nextSourceUrl,
+            sourceTitle: title.trim(),
         },
         { new: true }
     )
     if (!blog) return next(new ExpressError(404, "No blog found"))
+    if (nextSourceUrl) {
+        await News.updateOne(
+            { $or: [{ link: nextSourceUrl }, { title: title.trim() }] },
+            { $set: { blogId: blog._id } }
+        )
+    }
     res.json({ message: "Updated Successfully", blog })
 }
 export const deleteBlogs = async (req, res, next) => {
@@ -225,3 +246,4 @@ export const deleteBlogs = async (req, res, next) => {
     if (!blog) return next(new ExpressError(404, "No blog found"))
     res.json({ message: "Deleted Successfully" })
 }
+
